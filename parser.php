@@ -57,6 +57,14 @@ $stmt->bindParam(':law_type', $lawType);
 $stmt->bindParam(':purchase_type', $purchaseType);
 $stmt->bindParam(':protocol_name', $protocolName);
 
+try {
+    $stmt->execute();
+    echo "Данные успешно сохранены в базу данных.";
+} catch (PDOException $e) {
+    echo "Ошибка при сохранении данных: " . $e->getMessage();
+}
+
+
 $url2 = "https://zakupki.gov.ru/epz/order/notice/ea44/view/protocol/protocol-main-info.html?regNumber=0329200062221006202&protocolId=35530565";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url2);
@@ -193,6 +201,15 @@ foreach ($commissionMatches[1] as $key => $name) {
     }
 }
 
+$url3 = "https://zakupki.gov.ru/epz/order/notice/ea44/view/protocol/protocol-bid-list.html?regNumber=0329200062221006202&protocolId=35530565";
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url3);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Accept: text/html",
+    "Accept-Language: ru-RU,ru;q=0.9",
+]);
 
 $html3 = curl_exec($ch);
 curl_close($ch);
@@ -239,5 +256,4 @@ if (isset($matches[1])) {
     }
 }
 
-
-
+header("Location: index.php");

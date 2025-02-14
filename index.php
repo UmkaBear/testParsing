@@ -28,10 +28,11 @@ $application_rows = $application_stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <form method="post" action="parser.php">
+        <button type="submit" name="update_data" class="update-btn">Актуализировать данные</button>
+    </form>
 
-    <h1>Информация о закупках</h1>
-
-    <h2>Данные о закупке</h2>
+    <h2>Общая информация</h2>
     <table>
         <thead>
             <tr>
