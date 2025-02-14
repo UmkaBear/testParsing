@@ -121,4 +121,42 @@ echo "Количество неголосующих членов комисси�
 echo "Количество присутствовавших членов комиссии: $presentMembers\n<br>";
 
 
+$url3 = "https://zakupki.gov.ru/epz/order/notice/ea44/view/protocol/protocol-bid-list.html?regNumber=0329200062221006202&protocolId=35530565";
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url3);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Accept: text/html",
+    "Accept-Language: ru-RU,ru;q=0.9",
+]);
+
+$html3 = curl_exec($ch);
+curl_close($ch);
+
+if (!$html3) {
+    die("Ошибка загрузки страницы");
+}
+
+preg_match_all('/<tr class="table__row">.*?<td class="table__row-item normal-text">(.*?)<\/td>.*?<td class="table__row-item normal-text">(.*?)<\/td>.*?<td class="table__row-item normal-text">(.*?)<\/td>.*?<td class="table__row-item normal-text">(.*?)<\/td>/s', $html3, $matches);
+
+if (isset($matches[1])) {
+    $numRows = count($matches[1]);
+    for ($i = 0; $i < $numRows; $i++) {
+        $bidNumber = trim($matches[1][$i]);
+        $participantName = trim($matches[2][$i]);
+        $admissionStatus = trim($matches[3][$i]);
+        $serialNumber = trim($matches[4][$i]);
+        
+        echo "№ заявки: $bidNumber<br>";
+        echo "Наименование участника: $participantName<br>";
+        echo "Признак допуска заявки: $admissionStatus<br>";
+        echo "Порядковый номер: $serialNumber<br><br>"; 
+    }
+} else {
+    echo "Заявки не найдены.";
+}
+
+
 
