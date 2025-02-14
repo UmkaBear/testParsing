@@ -64,7 +64,6 @@ try {
     echo "Ошибка при сохранении данных: " . $e->getMessage();
 }
 
-
 $url2 = "https://zakupki.gov.ru/epz/order/notice/ea44/view/protocol/protocol-main-info.html?regNumber=0329200062221006202&protocolId=35530565";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url2);

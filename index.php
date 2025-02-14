@@ -31,7 +31,9 @@ $application_rows = $application_stmt->fetchAll(PDO::FETCH_ASSOC);
     <form method="post" action="parser.php">
         <button type="submit" name="update_data" class="update-btn">Актуализировать данные</button>
     </form>
-
+    <form method="post" action="download.php">
+        <button type="submit" name="download_data" class="download-btn">Скачать</button>
+    </form>
     <h2>Общая информация</h2>
     <table>
         <thead>
