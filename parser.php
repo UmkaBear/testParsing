@@ -89,17 +89,19 @@ $protocolTitle = trim($matches[1] ?? 'Не найдено');
 
 preg_match('/Организация, осуществляющая размещение протокола.*?section__info">(.*?)<\/span>/s', $html2, $matches);
 $protocolOrganizer = trim($matches[1] ?? 'Не найдено');
+$protocolOrganizer = strip_tags($protocolOrganizer);
 
 preg_match('/Извещение.*?section__info">(.*?)<\/span>/s', $html2, $matches);
 $noticeLink = trim($matches[1] ?? 'Не найдено');
+$noticeLink = strip_tags($noticeLink);
 
 preg_match('/Место подведения итогов.*?section__info">(.*?)<\/span>/s', $html2, $matches);
 $auctionPlace = trim($matches[1] ?? 'Не найдено');
 
-preg_match('/Дата и время составления протокола.*?section__info">(.*?)<\/span>/s', $html2, $matches);
+preg_match('/Дата и время составления протокола.*?section__info">(.*?)\s*<span class=\'timeZoneName\'/s', $html2, $matches);
 $protocolCreationDate = trim($matches[1] ?? 'Не найдено');
 
-preg_match('/Дата подписания протокола.*?section__info">(.*?)<\/span>/s', $html2, $matches);
+preg_match('/Дата подписания протокола.*?section__info">(.*?)\s*<span class=\'timeZoneName\'/s', $html2, $matches);
 $protocolSigningDate = trim($matches[1] ?? 'Не найдено');
 
 preg_match('/Комиссия.*?section__info">(.*?)<\/span>/s', $html2, $matches);
@@ -223,6 +225,9 @@ if (isset($matches[1])) {
         $admissionStatus = trim($matches[3][$i]);
         $serialNumber = trim($matches[4][$i]);
         
+        // Декодируем HTML-сущности
+        $participantName = html_entity_decode($participantName, ENT_QUOTES, 'UTF-8');
+
         $sql_check_bid = "SELECT COUNT(*) FROM application WHERE bid_number = :bid_number";
         $stmt_check_bid = $pdo->prepare($sql_check_bid);
         $stmt_check_bid->bindParam(':bid_number', $bidNumber);
@@ -250,9 +255,9 @@ if (isset($matches[1])) {
             $stmt_insert_bid->bindParam(':serial_number', $serialNumber);
 
             $stmt_insert_bid->execute();
-
         }
     }
 }
+
 
 header("Location: index.php");
