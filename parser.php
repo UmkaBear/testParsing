@@ -13,10 +13,6 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 $html = curl_exec($ch);
 curl_close($ch);
 
-if (!$html) {
-    die("Ошибка загрузки страницы");
-}
-
 preg_match('/regNumber=(\d+)/', $html, $matches);
 $auctionNumber = $matches[1] ?? 'Не найдено';
 
@@ -60,13 +56,6 @@ $stmt->bindParam(':purchase_object', $purchaseObject);
 $stmt->bindParam(':law_type', $lawType);
 $stmt->bindParam(':purchase_type', $purchaseType);
 $stmt->bindParam(':protocol_name', $protocolName);
-
-if ($stmt->execute()) {
-    echo "Данные успешно сохранены в базу данных!";
-} else {
-    echo "Ошибка при сохранении данных в базу.";
-}
-
 
 $url2 = "https://zakupki.gov.ru/epz/order/notice/ea44/view/protocol/protocol-main-info.html?regNumber=0329200062221006202&protocolId=35530565";
 $ch = curl_init();
@@ -124,9 +113,7 @@ $stmt_check->bindParam(':auction_number', $auctionNumber);
 $stmt_check->execute();
 $rowCount = $stmt_check->fetchColumn();
 
-if ($rowCount > 0) {
-    echo "Запись для аукциона с номером $auctionNumber уже существует. Данные не будут добавлены.\n";
-} else {
+if ($rowCount == 0) {
     $sql_insert = "INSERT INTO protocol_info (
         auction_number,
         document_status,
@@ -171,28 +158,44 @@ if ($rowCount > 0) {
     $stmt_insert->bindParam(':present_members', $presentMembers);
 
     $stmt_insert->execute();
-
-    echo "Данные протокола успешно сохранены в базе данных.\n";
 }
 
+preg_match_all('/<tr class="tableBlock__row">.*?<td class="tableBlock__col">(.*?)<\/td>.*?<td class="tableBlock__col">(.*?)<\/td>/s', $html2, $commissionMatches);
 
-$url3 = "https://zakupki.gov.ru/epz/order/notice/ea44/view/protocol/protocol-bid-list.html?regNumber=0329200062221006202&protocolId=35530565";
+foreach ($commissionMatches[1] as $key => $name) {
+    $role = $commissionMatches[2][$key];
+    
+    $sql_check_commission = "SELECT COUNT(*) FROM commission_members WHERE auction_number = :auction_number AND member_name = :member_name";
+    $stmt_check_commission = $pdo->prepare($sql_check_commission);
+    $stmt_check_commission->bindParam(':auction_number', $auctionNumber);
+    $stmt_check_commission->bindParam(':member_name', $name);
+    $stmt_check_commission->execute();
+    $commissionCount = $stmt_check_commission->fetchColumn();
 
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url3);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Accept: text/html",
-    "Accept-Language: ru-RU,ru;q=0.9",
-]);
+    if ($commissionCount == 0) {
+        $sql_insert_commission = "INSERT INTO commission_members (
+            auction_number,
+            member_name,
+            role
+        ) VALUES (
+            :auction_number,
+            :member_name,
+            :role
+        )";
+
+        $stmt_insert_commission = $pdo->prepare($sql_insert_commission);
+
+        $stmt_insert_commission->bindParam(':auction_number', $auctionNumber);
+        $stmt_insert_commission->bindParam(':member_name', $name);
+        $stmt_insert_commission->bindParam(':role', $role);
+
+        $stmt_insert_commission->execute();
+    }
+}
+
 
 $html3 = curl_exec($ch);
 curl_close($ch);
-
-if (!$html3) {
-    die("Ошибка загрузки страницы");
-}
 
 preg_match_all('/<tr class="table__row">.*?<td class="table__row-item normal-text">(.*?)<\/td>.*?<td class="table__row-item normal-text">(.*?)<\/td>.*?<td class="table__row-item normal-text">(.*?)<\/td>.*?<td class="table__row-item normal-text">(.*?)<\/td>/s', $html3, $matches);
 
@@ -210,9 +213,7 @@ if (isset($matches[1])) {
         $stmt_check_bid->execute();
         $rowCount_bid = $stmt_check_bid->fetchColumn();
 
-        if ($rowCount_bid > 0) {
-            echo "Заявка с номером $bidNumber уже существует. Данные не будут добавлены.<br><br>";
-        } else {
+        if ($rowCount_bid == 0) {
             $sql_insert_bid = "INSERT INTO application (
                 bid_number,
                 participant_name,
@@ -234,11 +235,8 @@ if (isset($matches[1])) {
 
             $stmt_insert_bid->execute();
 
-            echo "Заявка с номером $bidNumber успешно сохранена в базе данных.<br><br>";
         }
     }
-} else {
-    echo "Заявки не найдены.<br>";
 }
 
 
