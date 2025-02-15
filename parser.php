@@ -225,7 +225,6 @@ if (isset($matches[1])) {
         $admissionStatus = trim($matches[3][$i]);
         $serialNumber = trim($matches[4][$i]);
         
-        // Декодируем HTML-сущности
         $participantName = html_entity_decode($participantName, ENT_QUOTES, 'UTF-8');
 
         $sql_check_bid = "SELECT COUNT(*) FROM application WHERE bid_number = :bid_number";
@@ -259,5 +258,73 @@ if (isset($matches[1])) {
     }
 }
 
+$url4 = "https://zakupki.gov.ru/epz/order/notice/ea44/view/protocol/protocol-docs.html?regNumber=0329200062221006202&protocolId=35530565";
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url4);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Accept: text/html",
+    "Accept-Language: ru-RU,ru;q=0.9",
+]);
+
+$html4 = curl_exec($ch);
+curl_close($ch);
+
+preg_match_all('/<a\s+href="(https:\/\/zakupki\.gov\.ru\/44fz\/filestore\/public\/1\.0\/download\/priz\/file\.html\?uid=[^"]+)"[^>]*title="([^"]+)"/s', $html4, $matches);
+
+$documentLinks = $matches[1]; 
+$documentNames = $matches[2]; 
+
+$documentsDir = 'documents/';
+if (!is_dir($documentsDir)) {
+    mkdir($documentsDir, 0777, true);
+}
+
+foreach ($documentLinks as $key => $fileUrl) {
+    $fileName = trim(strip_tags($documentNames[$key])); 
+    $fileName = preg_replace('/[^a-zA-Z0-9а-яА-Я0-9_\-\. ]/u', '', $fileName);
+    $fileName = preg_replace('/\s+/', ' ', $fileName);
+    $fileName = trim($fileName); 
+    $safeFileName = $fileName;  
+    $localPath = $documentsDir . $safeFileName;
+
+    $sql_check_file = "SELECT COUNT(*) FROM documents WHERE file_name = :file_name AND file_path = :file_path";
+    $stmt_check = $pdo->prepare($sql_check_file);
+    $stmt_check->execute([
+        'file_name' => $safeFileName,
+        'file_path' => $localPath
+    ]);
+    
+    $fileExists = $stmt_check->fetchColumn() > 0;
+
+    if (!$fileExists) {
+        if (!file_exists($localPath)) {
+            $ch = curl_init($fileUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Accept: */*",
+                "Accept-Language: ru-RU,ru;q=0.9",
+            ]);
+            $fileContent = curl_exec($ch);
+            curl_close($ch);
+
+            if ($fileContent !== false) {
+                file_put_contents($localPath, $fileContent);
+            } else {
+                echo "Ошибка при скачивании файла: " . $fileUrl . "\n";
+            }
+        }
+
+        $sql_insert_file = "INSERT INTO documents (file_name, file_path) 
+                            VALUES (:file_name, :file_path)";
+        $stmt_insert = $pdo->prepare($sql_insert_file);
+        $stmt_insert->execute([
+            'file_name' => $safeFileName,
+            'file_path' => $localPath
+        ]);
+    }
+}
 
 header("Location: index.php");

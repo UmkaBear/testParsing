@@ -17,6 +17,11 @@ $commission_members_rows = $commission_members_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $application_stmt = $pdo->query($sql_application);
 $application_rows = $application_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$sql = "SELECT file_name, file_path FROM documents";
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+$documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -138,6 +143,26 @@ $application_rows = $application_stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php endforeach; ?>
     </tbody>
 </table>
-
+<h2>Список документов</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Наименование файла</th>
+            <th>Скачать</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        foreach ($documents as $document) {
+            $fileName = htmlspecialchars($document['file_name']);
+            $filePath = htmlspecialchars($document['file_path']);
+            echo "<tr>";
+            echo "<td>{$fileName}</td>";
+            echo "<td><a href='{$filePath}' download>Скачать</a></td>";
+            echo "</tr>";
+        }
+        ?>
+    </tbody>
+</table>
 </body>
 </html>
