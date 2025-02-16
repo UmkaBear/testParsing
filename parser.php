@@ -173,7 +173,7 @@ preg_match_all('/<tr class="tableBlock__row">.*?<td class="tableBlock__col">(.*?
 
 foreach ($commissionMatches[1] as $key => $name) {
     $role = $commissionMatches[2][$key];
-    
+
     $sql_check_commission = "SELECT COUNT(*) FROM commission_members WHERE auction_number = :auction_number AND member_name = :member_name";
     $stmt_check_commission = $pdo->prepare($sql_check_commission);
     $stmt_check_commission->bindParam(':auction_number', $auctionNumber);
@@ -224,7 +224,7 @@ if (isset($matches[1])) {
         $participantName = trim($matches[2][$i]);
         $admissionStatus = trim($matches[3][$i]);
         $serialNumber = trim($matches[4][$i]);
-        
+
         $participantName = html_entity_decode($participantName, ENT_QUOTES, 'UTF-8');
 
         $sql_check_bid = "SELECT COUNT(*) FROM application WHERE bid_number = :bid_number";
@@ -273,20 +273,20 @@ curl_close($ch);
 
 preg_match_all('/<a\s+href="(https:\/\/zakupki\.gov\.ru\/44fz\/filestore\/public\/1\.0\/download\/priz\/file\.html\?uid=[^"]+)"[^>]*title="([^"]+)"/s', $html4, $matches);
 
-$documentLinks = $matches[1]; 
-$documentNames = $matches[2]; 
+$documentLinks = $matches[1];
+$documentNames = $matches[2];
 
-$documentsDir = 'documents/';
+$documentsDir = 'storage/documents/';
 if (!is_dir($documentsDir)) {
     mkdir($documentsDir, 0777, true);
 }
 
 foreach ($documentLinks as $key => $fileUrl) {
-    $fileName = trim(strip_tags($documentNames[$key])); 
+    $fileName = trim(strip_tags($documentNames[$key]));
     $fileName = preg_replace('/[^a-zA-Z0-9а-яА-Я0-9_\-\. ]/u', '', $fileName);
     $fileName = preg_replace('/\s+/', ' ', $fileName);
-    $fileName = trim($fileName); 
-    $safeFileName = $fileName;  
+    $fileName = trim($fileName);
+    $safeFileName = $fileName;
     $localPath = $documentsDir . $safeFileName;
 
     $sql_check_file = "SELECT COUNT(*) FROM documents WHERE file_name = :file_name AND file_path = :file_path";
@@ -295,7 +295,7 @@ foreach ($documentLinks as $key => $fileUrl) {
         'file_name' => $safeFileName,
         'file_path' => $localPath
     ]);
-    
+
     $fileExists = $stmt_check->fetchColumn() > 0;
 
     if (!$fileExists) {

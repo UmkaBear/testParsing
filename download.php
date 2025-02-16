@@ -30,21 +30,21 @@ foreach ($auction_info_rows as $row) {
     fputcsv($output, [$row['auction_number'], $row['start_price'], $row['published_eis'], $row['published_ep'], $row['purchase_object'], $row['law_type'], $row['purchase_type'], $row['protocol_name']]);
 }
 
-fputcsv($output, []);  
+fputcsv($output, []);
 
 fputcsv($output, ['Статус документа', 'Наименование протокола', 'Организация', 'Извещение', 'Место подведения итогов', 'Дата и время составления', 'Дата подписания', 'Информация о комиссии', 'Всего членов комиссии', 'Неголосующие члены комиссии', 'Присутствующие члены комиссии']);
 foreach ($protocol_info_rows as $row) {
     fputcsv($output, [$row['document_status'], $row['protocol_title'], $row['protocol_organizer'], $row['notice_link'], $row['auction_place'], $row['protocol_creation_date'], $row['protocol_signing_date'], $row['commission_info'], $row['total_members'], $row['non_voting_members'], $row['present_members']]);
 }
 
-fputcsv($output, []);  
+fputcsv($output, []);
 
 fputcsv($output, ['Имя', 'Роль']);
 foreach ($commission_members_rows as $row) {
     fputcsv($output, [$row['member_name'], $row['role']]);
 }
 
-fputcsv($output, []);  
+fputcsv($output, []);
 
 fputcsv($output, ['№ заявки', 'Наименование участника', 'Признак допуска заявки', 'Порядковый номер']);
 foreach ($application_rows as $row) {
@@ -53,4 +53,3 @@ foreach ($application_rows as $row) {
 
 fclose($output);
 exit();
-?>
