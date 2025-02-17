@@ -1,27 +1,27 @@
 <?php
-require 'database.php'; 
+require 'database.php';
 
-$sql_auction_info = "SELECT * FROM auction_info";
-$sql_protocol_info = "SELECT * FROM protocol_info";
-$sql_commission_members = "SELECT * FROM commission_members";
-$sql_application = "SELECT * FROM application";
+function fetchAllRows(PDO $pdo, string $sql): array {
+    try {
+        $stmt = $pdo->query($sql);
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (PDOException $e) {
+        die("Error fetching data: " . $e->getMessage());
+    }
+}
 
-$auction_info_stmt = $pdo->query($sql_auction_info);
-$auction_info_rows = $auction_info_stmt->fetchAll(PDO::FETCH_ASSOC);
+$auction_info_rows = fetchAllRows($pdo, "SELECT * FROM auction_info");
+$protocol_info_rows = fetchAllRows($pdo, "SELECT * FROM protocol_info");
+$commission_members_rows = fetchAllRows($pdo, "SELECT * FROM commission_members");
+$application_rows = fetchAllRows($pdo, "SELECT * FROM application");
 
-$protocol_info_stmt = $pdo->query($sql_protocol_info);
-$protocol_info_rows = $protocol_info_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$commission_members_stmt = $pdo->query($sql_commission_members);
-$commission_members_rows = $commission_members_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$application_stmt = $pdo->query($sql_application);
-$application_rows = $application_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$sql = "SELECT file_name, file_path FROM documents";
-$stmt = $pdo->prepare($sql);
-$stmt->execute();
-$documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->prepare("SELECT file_name, file_path FROM documents");
+    $stmt->execute();
+    $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Error fetching documents: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
